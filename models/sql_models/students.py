@@ -9,3 +9,7 @@ class Students(SQLModel, table=True):
     roll_number : int
     name: str
     class_room : Optional[int] = Field(foreign_key="classroom.id")
+    email: str = Field(default=None,unique=True)
+    password: str
+    is_active: Optional[bool] = Field(default=True)
+    is_super_user: Optional[bool] = Field(default=False)
