@@ -12,8 +12,6 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 
-
-
 def send_email(email: EmailSchema, templateData, background_task: BackgroundTasks):
     template = f"""
         <html>
@@ -28,21 +26,25 @@ def send_email(email: EmailSchema, templateData, background_task: BackgroundTask
         # List of recipients, as many as you can pass
         recipients=email.dict().get("email"),
         body=template,
-        subtype="html"
+        subtype="html",
     )
     fm = FastMail(conf)
     background_task.add_task(fm.send_message, message)
 
 
-
-def borrow_book(db, current_student,borrow_book_data: LibraryRequest,background_task: BackgroundTasks):
+def borrow_book(
+    db,
+    current_student,
+    borrow_book_data: LibraryRequest,
+    background_task: BackgroundTasks,
+):
     """This is the function for borrowing book"""
     student_db = current_student
     book_db = db.get(Book, borrow_book_data.book)
     if book_db:
         book_quantity = book_db.quantity
         if book_quantity > 0:
-            borrow_book_data = Library(**borrow_book_data.dict(),student=student_db.id)
+            borrow_book_data = Library(**borrow_book_data.dict(), student=student_db.id)
             setattr(book_db, "quantity", book_quantity - 1)
             template = f"we appreciate you using our book."
             db.add(book_db)
@@ -50,7 +52,8 @@ def borrow_book(db, current_student,borrow_book_data: LibraryRequest,background_
             db.refresh(book_db)
         else:
             borrow_book_data = Library(
-                **borrow_book_data.dict(), is_reserved=True,student=student_db.id)
+                **borrow_book_data.dict(), is_reserved=True, student=student_db.id
+            )
             template = f"We appreciate your interest in borrowing the book, but unfortunately, it is not currently available. We will let you know when it becomes available."
         db.add(borrow_book_data)
         db.commit()
@@ -62,11 +65,17 @@ def borrow_book(db, current_student,borrow_book_data: LibraryRequest,background_
         exception.Exception_id_not_found("book")
 
 
-
-def return_borrow_book(db, current_student,borrow_id,background_task: BackgroundTasks):
+def return_borrow_book(
+    db, current_student, borrow_id, background_task: BackgroundTasks
+):
     student_db = current_student
     Library_db = db.get(Library, borrow_id)
-    if Library_db and Library_db.is_reserved == False and Library_db.is_return == False and Library_db.student == student_db.id:
+    if (
+        Library_db
+        and Library_db.is_reserved == False
+        and Library_db.is_return == False
+        and Library_db.student == student_db.id
+    ):
         book_db = db.get(Book, Library_db.book)
         setattr(book_db, "quantity", book_db.quantity + 1)
         setattr(Library_db, "is_return", True)
@@ -77,14 +86,14 @@ def return_borrow_book(db, current_student,borrow_id,background_task: Background
         db.refresh(book_db)
         template = f"I appreciate you giving the borrowed book back."
         sendemail = EmailSchema(email=[student_db.email])
-        send_email(sendemail,template,background_task)
+        send_email(sendemail, template, background_task)
         reserved_library = get_library_data(db=db, is_reserved=True, book=book_db.id)
         if reserved_library:
             for data in reserved_library:
-                reserved_student_db = db.get(Students,data.student)
+                reserved_student_db = db.get(Students, data.student)
                 template_msg = f"The {book_db.name} book you requested is now available. There are {book_db.quantity} quantities available right now, so hurry up and grab one before they are all gone."
                 email = EmailSchema(email=[reserved_student_db.email])
-                send_email(email,template_msg,background_task)
+                send_email(email, template_msg, background_task)
             # reserved_library_db = db.get(Library, reserved_library[0].id)
             # setattr(reserved_library_db, "is_reserved", False)
             # db.add(reserved_library_db)
@@ -93,11 +102,18 @@ def return_borrow_book(db, current_student,borrow_id,background_task: Background
         exception.Exception_id_not_found("library")
 
 
-
-def borrow_reserved_book(db, current_student,reserved_id,background_task:BackgroundTasks):
+def borrow_reserved_book(
+    db, current_student, reserved_id, background_task: BackgroundTasks
+):
     Library_db = db.get(Library, reserved_id)
     student_db = current_student
-    if Library_db and Library_db.is_reserved and Library_db.is_return == False and student_db and Library_db.student == student_db.id:
+    if (
+        Library_db
+        and Library_db.is_reserved
+        and Library_db.is_return == False
+        and student_db
+        and Library_db.student == student_db.id
+    ):
         book_db = db.get(Book, Library_db.book)
         book_quantity = book_db.quantity
         if book_db:
@@ -111,18 +127,17 @@ def borrow_reserved_book(db, current_student,reserved_id,background_task:Backgro
                 db.refresh(Library_db)
                 template = f"we appreciate you using our book."
                 email = EmailSchema(email=[student_db.email])
-                send_email(email,template,background_task)
+                send_email(email, template, background_task)
                 return Library_db
             else:
                 templates = f"We appreciate your interest in borrowing the book, but unfortunately, it is not currently available. We will let you know when it becomes available."
                 email = EmailSchema(email=[student_db.email])
-                send_email(email,templates,background_task)
+                send_email(email, templates, background_task)
                 exception.No_book_availabe_still()
         else:
             exception.Exception_id_not_found("book")
     else:
         exception.Exception_id_not_found("library")
-
 
 
 def get_library_data(**kwargs):
@@ -161,6 +176,3 @@ def get_library_data(**kwargs):
         return list_of_library
     else:
         exception.Exception_database_error()
-
-
-

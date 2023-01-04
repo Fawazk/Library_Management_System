@@ -20,7 +20,7 @@ router = APIRouter(tags=["students"], prefix="/student")
 
 
 # @router.post("/register-student", response_model=FinalStudentResponse)
-@router.post("/register-student", response_model=ListStudentResponse)
+@router.post("/register", response_model=ListStudentResponse)
 async def register_student(student_data: StudentRequest, db: Session = Depends(get_db)):
     """To register the student
     subject must be any of that which shown in example
@@ -37,7 +37,7 @@ async def login(
     form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
 ):
     """To login into the school
-    username = you can give the your email
+    username = Can give the email as username
     """
     response = functions.login_school(db, form_data)
     return response

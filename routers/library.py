@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, APIRouter, HTTPException, BackgroundTasks
+from fastapi import FastAPI, Depends, APIRouter, Path, BackgroundTasks
 from operations import library as functions
 from models.pydantic_models.request.library import LibraryRequest, conf
 from models.pydantic_models.response.library import LibraryResponse, EmailSchema
@@ -15,45 +15,45 @@ from starlette.responses import JSONResponse
 router = APIRouter(tags=["library"], prefix="/library")
 
 
-@router.post("/borrow-book", response_model=LibraryResponse)
+@router.post("/borrow", response_model=LibraryResponse)
 async def borrow_book(
     borrow_book_data: LibraryRequest,
-    backgroud_task:BackgroundTasks,
+    backgroud_task: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: FinalStudentResponse = Depends(
         studentfunctions.get_current_active_user
     ),
 ):
     """To borrow book from library"""
-    response = functions.borrow_book(db,current_user,borrow_book_data,backgroud_task)
+    response = functions.borrow_book(db, current_user, borrow_book_data, backgroud_task)
     return response
 
 
-@router.patch("/return-borrow-book")
+@router.patch("/return-borrow")
 async def return_borrow_book(
-    borrow_id: int,
-    backgroud_task:BackgroundTasks,
+    backgroud_task: BackgroundTasks,
+    borrow_id: int= Path(title="The ID of the borrow to get",ge=1),
     db: Session = Depends(get_db),
     current_user: FinalStudentResponse = Depends(
         studentfunctions.get_current_active_user
     ),
 ):
     """Return borrowed book in to library"""
-    response = functions.return_borrow_book(db, borrow_id,backgroud_task)
+    response = functions.return_borrow_book(db, borrow_id, backgroud_task)
     return response
 
 
-@router.patch("/borrow-reserved-book", response_model=LibraryResponse)
+@router.patch("/borrow-reserved", response_model=LibraryResponse)
 async def borrow_reserved_book(
-    reserved_id: int,
-    backgroud_task:BackgroundTasks,
+    backgroud_task: BackgroundTasks,
+    reserved_id: int=Path(title="The ID of the reserved book to get",ge=1),
     db: Session = Depends(get_db),
     current_user: FinalStudentResponse = Depends(
         studentfunctions.get_current_active_user
     ),
 ):
     """Borrow reserved book from library"""
-    response = functions.borrow_reserved_book(db, reserved_id,backgroud_task)
+    response = functions.borrow_reserved_book(db, reserved_id, backgroud_task)
     return response
 
 
@@ -75,6 +75,7 @@ async def get_library_data(
     """To get one class room by the id given"""
     response = functions.get_library_data(db=db, skip=skip, limit=limit)
     return response
+
 
 # @router.post('/send-email/backgroundtasks')
 # def send_email(email:EmailSchema,background_tasks: BackgroundTasks):

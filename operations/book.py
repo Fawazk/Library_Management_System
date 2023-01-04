@@ -1,8 +1,12 @@
 from models.pydantic_models.request.book import BookRequest
 from models.sql_models.book import Book
+from fastapi import BackgroundTasks
 import exception
 from models.sql_models.library import Library
 from operations import library as libraryfunctions
+from operations.library import send_email
+from models.sql_models.students import Students
+from models.pydantic_models.response.library import EmailSchema
 
 
 def register_book(db, book_data: BookRequest):
@@ -37,7 +41,7 @@ def get_book(**kwargs):
         exception.Exception_database_error()
 
 
-def edit_book(db, book_data, book_id):
+def edit_book(db, book_data, book_id,background_task:BackgroundTasks):
     address = db.get(Book, book_id)
     if address:
         address_data = book_data.dict(exclude_unset=True)
@@ -49,11 +53,14 @@ def edit_book(db, book_data, book_id):
                 db=db, is_reserved=True, book=book_id
             )
             if reserved_library:
-                for i in range(address.quantity):
-                    if len(reserved_library) > i:
-                        reserved_library_db = db.get(Library, reserved_library[i].id)
-                        setattr(reserved_library_db, "is_reserved", False)
-                        db.add(reserved_library_db)
+                for data in reserved_library:
+                    reserved_student_db = db.get(Students, data.student)
+                    template_msg = f"The {address.name} book you requested is now available. There are {address.quantity} quantities available right now, so hurry up and grab one before they are all gone."
+                    email = EmailSchema(email=[reserved_student_db.email])
+                    send_email(email, template_msg, background_task)
+                    # reserved_library_db = db.get(Library, reserved_library[i].id)
+                    # setattr(reserved_library_db, "is_reserved", False)
+                    # db.add(reserved_library_db)
         db.commit()
         db.refresh(address)
         return address
@@ -64,7 +71,8 @@ def edit_book(db, book_data, book_id):
 def delete_book(db, book_id):
     book_db = db.get(Book, book_id)
     if book_db:
-        list_library_book = db.query(Library).filter(Library.book == book_id).all()
+        list_library_book = db.query(Library).filter(
+            Library.book == book_id).all()
         if list_library_book != []:
             for data in list_library_book:
                 db.delete(data)

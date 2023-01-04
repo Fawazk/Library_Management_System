@@ -1,4 +1,4 @@
-from fastapi import HTTPException, status, Depends,BackgroundTasks
+from fastapi import HTTPException, status, Depends, BackgroundTasks
 from models.sql_models.students import Students
 from sqlmodel import select
 import exception

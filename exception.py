@@ -38,8 +38,8 @@ def Subject_Exception_error(subjects):
         status_code=406, detail=f"It must be any of from {subjects} this list"
     )
 
+
 def Exception_students_null():
     raise HTTPException(
-        status_code=200,
-        detail="There are no students in this classroom."
+        status_code=200, detail="There are no students in this classroom."
     )

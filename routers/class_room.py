@@ -13,7 +13,7 @@ import exception
 router = APIRouter(tags=["class Room"], prefix="/class-room")
 
 
-@router.post("/register-class-room", response_model=ClassRoomResponse)
+@router.post("/register", response_model=ClassRoomResponse)
 async def register_class_room(
     class_room_data: ClassRoomRequest, db: Session = Depends(get_db)
 ):

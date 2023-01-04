@@ -1,10 +1,7 @@
 from models.pydantic_models.request.library import FinalLibraryRequest
 from datetime import datetime, timezone
-from pydantic import BaseModel, validator,EmailStr
+from pydantic import BaseModel, validator, EmailStr
 from typing import List
-
-
-
 
 
 #  Address Schema
@@ -20,6 +17,4 @@ class LibraryResponse(FinalLibraryRequest):
 
 
 class EmailSchema(BaseModel):
-   email: List[EmailStr]
-
-
+    email: List[EmailStr]
