@@ -1,7 +1,4 @@
-
-
 from models.pydantic_models.request.book import BookRequest
-
 
 
 #  Address Schema

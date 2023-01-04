@@ -1,4 +1,3 @@
-
 from models.pydantic_models.request.book import BookRequest
 from models.sql_models.book import Book
 import exception
@@ -15,8 +14,6 @@ def register_book(db, book_data: BookRequest):
     return book_data_db
 
 
-
-
 def get_book(**kwargs):
 
     if "db" in kwargs:
@@ -27,7 +24,7 @@ def get_book(**kwargs):
             if list_of_books:
                 return list_of_books
             else:
-                exception.Exception_id_not_found('book')
+                exception.Exception_id_not_found("book")
 
         if "limit" in kwargs and "skip" in kwargs:
             skip = kwargs["skip"]
@@ -40,7 +37,7 @@ def get_book(**kwargs):
         exception.Exception_database_error()
 
 
-def edit_book(db,book_data,book_id):
+def edit_book(db, book_data, book_id):
     address = db.get(Book, book_id)
     if address:
         address_data = book_data.dict(exclude_unset=True)
@@ -48,15 +45,32 @@ def edit_book(db,book_data,book_id):
             setattr(address, key, value)
         db.add(address)
         if address.quantity > 0:
-            reserved_library = libraryfunctions.get_library_data(db=db,is_reserved=True,book=book_id)
+            reserved_library = libraryfunctions.get_library_data(
+                db=db, is_reserved=True, book=book_id
+            )
             if reserved_library:
                 for i in range(address.quantity):
-                    if len(reserved_library)>i:
-                        reserved_library_db = db.get(Library,reserved_library[i].id)
-                        setattr(reserved_library_db,'is_reserved',False)
+                    if len(reserved_library) > i:
+                        reserved_library_db = db.get(Library, reserved_library[i].id)
+                        setattr(reserved_library_db, "is_reserved", False)
                         db.add(reserved_library_db)
         db.commit()
         db.refresh(address)
         return address
     else:
-        exception.Exception_id_not_found('book')
+        exception.Exception_id_not_found("book")
+
+
+def delete_book(db, book_id):
+    book_db = db.get(Book, book_id)
+    if book_db:
+        list_library_book = db.query(Library).filter(Library.book == book_id).all()
+        if list_library_book != []:
+            for data in list_library_book:
+                db.delete(data)
+                db.commit()
+        db.delete(book_db)
+        db.commit()
+        return {"Is_deleted": True}
+    else:
+        exception.Exception_id_not_found("book")
