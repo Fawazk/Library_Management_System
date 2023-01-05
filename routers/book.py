@@ -1,6 +1,6 @@
-from fastapi import Depends, APIRouter, BackgroundTasks,Path
+from fastapi import Depends, APIRouter, BackgroundTasks, status
 from models.pydantic_models.request.book import BookRequest
-from models.pydantic_models.response.book import BookResponse
+from models.pydantic_models.response.book import BookResponse,BookPathParameters
 from config.database import get_db
 from sqlmodel import Session
 from operations import book as functions
@@ -11,13 +11,16 @@ import exception
 router = APIRouter(tags=["book"], prefix="/book")
 
 
-@router.post("/register", response_model=BookResponse)
+@router.post("/register", response_model=BookResponse,status_code=status.HTTP_201_CREATED)
 async def register_book(book_data: BookRequest, db: Session = Depends(get_db)):
-    """To register the book"""
+    """
+    To register the book
+        * Subject must be any one from this ['english', 'maths', 'science', 'social']
+    """
     try:
         response = functions.register_book(db, book_data)
     except exc.IntegrityError as e:
-        exception.IntegrityError(status_code=409, detail=str(e.orig))
+        exception.IntegrityError(detail=str(e.orig))
     return response
 
 
@@ -42,22 +45,23 @@ async def register_book(book_data: BookRequest, db: Session = Depends(get_db)):
 #     return response
 
 
-@router.patch("/edit/{book_id}", response_model=BookResponse)
+@router.patch("/edit/{BookId}", response_model=BookResponse,status_code=status.HTTP_202_ACCEPTED)
 async def edit_book(
     book_data: BookRequest,
     backgroud_task: BackgroundTasks,
-    book_id: int = Path(title="The ID of the book to get",ge=1),
+    path_parameters: BookPathParameters = Depends(BookPathParameters),
     db: Session = Depends(get_db),
 ):
-    """To edit the book data book which filtered by given id"""
-    response = functions.edit_book(db, book_data, book_id,backgroud_task)
+    """To edit the book"""
+    response = functions.edit_book(db, book_data, path_parameters.book_id, backgroud_task)
     return response
 
 
-@router.delete("/delete/{book_id}")
+@router.delete("/delete/{BookId}",status_code=status.HTTP_202_ACCEPTED)
 async def delete_book(
     db: Session = Depends(get_db),
-    book_id:int = Path(title="The ID of the book to get",ge=1),
-    ):
-    response = functions.delete_book(db, book_id)
+    path_parameters: BookPathParameters = Depends(BookPathParameters),
+):
+    """To delete book"""
+    response = functions.delete_book(db, path_parameters.book_id)
     return response

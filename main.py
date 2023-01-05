@@ -12,7 +12,7 @@ tags_metadata = [
 ]
 
 description = """
-library management system project API helps students do awesome stuff.
+## Library Management System project API helps students do awesome stuff.
 
 ## Students
 
@@ -37,10 +37,7 @@ library management system project API helps students do awesome stuff.
 
 """
 
-app = FastAPI(
-    openapi_tags=tags_metadata,
-    description=description
-)
+app = FastAPI(openapi_tags=tags_metadata, description=description)
 
 
 SQLModel.metadata.create_all(engine)

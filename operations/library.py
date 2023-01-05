@@ -22,7 +22,7 @@ def send_email(email: EmailSchema, templateData, background_task: BackgroundTask
         </html>
         """
     message = MessageSchema(
-        subject="Fastapi-Mail module",
+        subject="Library Data",
         # List of recipients, as many as you can pass
         recipients=email.dict().get("email"),
         body=template,
@@ -41,6 +41,13 @@ def borrow_book(
     """This is the function for borrowing book"""
     student_db = current_student
     book_db = db.get(Book, borrow_book_data.book)
+    all_library_data = get_library_data(db=db,students=student_db.id)
+    if all_library_data:
+        for data in all_library_data:
+            if data.return_date:
+                pass
+            else:
+                exception.UserAlreadyInLibrary(student_db.name)
     if book_db:
         book_quantity = book_db.quantity
         if book_quantity > 0:
@@ -150,6 +157,18 @@ def get_library_data(**kwargs):
                 db.query(Library)
                 .filter(Library.is_reserved == is_reserved)
                 .filter(Library.book == book_id)
+                .all()
+            )
+            if list_of_library == []:
+                return None
+            list_of_library.sort(key=lambda data: data.date_of_borrow)
+            return list_of_library
+        
+        if "students" in kwargs:
+            student_id  = kwargs["students"]
+            list_of_library = (
+                db.query(Library)
+                .filter(Library.student == student_id)
                 .all()
             )
             if list_of_library == []:

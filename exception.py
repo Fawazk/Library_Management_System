@@ -29,8 +29,8 @@ def HTTP_401_UNAUTHORIZED(detail):
     )
 
 
-def IntegrityError(status_code, detail):
-    raise HTTPException(status_code=status_code, detail=detail)
+def IntegrityError(detail):
+    raise HTTPException(status_code=409, detail=detail)
 
 
 def Subject_Exception_error(subjects):
@@ -42,4 +42,11 @@ def Subject_Exception_error(subjects):
 def Exception_students_null():
     raise HTTPException(
         status_code=200, detail="There are no students in this classroom."
+    )
+
+
+def UserAlreadyInLibrary(student):
+    raise HTTPException(
+        status_code=409,
+        detail=f"{student} You've already borrowed or reserved one book; the rest can be taken after you return that"
     )

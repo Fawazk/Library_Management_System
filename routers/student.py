@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, APIRouter, HTTPException
+from fastapi import FastAPI, Depends, APIRouter, status
 from models.pydantic_models.request.student import (
     StudentRequest,
     Token,
@@ -20,24 +20,23 @@ router = APIRouter(tags=["students"], prefix="/student")
 
 
 # @router.post("/register-student", response_model=FinalStudentResponse)
-@router.post("/register", response_model=ListStudentResponse)
+@router.post("/register", response_model=ListStudentResponse,status_code=status.HTTP_201_CREATED)
 async def register_student(student_data: StudentRequest, db: Session = Depends(get_db)):
-    """To register the student
-    subject must be any of that which shown in example
-    """
+    """To register the student"""
     try:
         response = functions.register_student(db, student_data)
     except exc.IntegrityError as e:
-        exception.IntegrityError(status_code=409, detail=str(e.orig))
+        exception.IntegrityError(detail=str(e.orig))
     return response
 
 
-@router.post("/login", response_model=Token)
+@router.post("/login", response_model=Token,status_code=status.HTTP_200_OK)
 async def login(
     form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
 ):
-    """To login into the school
-    username = Can give the email as username
+    """
+    To login into the school
+        * username = Can give the email as username
     """
     response = functions.login_school(db, form_data)
     return response

@@ -3,7 +3,6 @@ from typing import List
 from typing import Optional
 from models.pydantic_models.request.student import StudentRequest
 
-
 #  Address Schema
 
 
