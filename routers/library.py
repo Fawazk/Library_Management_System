@@ -11,10 +11,6 @@ from sqlmodel import Session
 from models.pydantic_models.response.student import FinalStudentResponse
 from operations import student as studentfunctions
 
-from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
-from models.pydantic_models.response.library import EmailSchema
-from starlette.requests import Request
-from starlette.responses import JSONResponse
 
 router = APIRouter(tags=["library"], prefix="/library")
 

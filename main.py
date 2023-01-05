@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI,Form
 from routers import book, class_room, library, student
 from sqlmodel import SQLModel
 from config.database import engine
@@ -14,12 +14,12 @@ tags_metadata = [
 description = """
 ## Library Management System project API helps students do awesome stuff.
 
-## Students
+### Students
 
 * Student can **Register students**.
 * Students must first log into the school if they want to take a book. **Login Students**
 
-## Library
+### Library
 
 *  By providing the book's ID as params, student can borrow a book, and a text message will be sent to stuent email.
 *  when a book is checked out. If a book is unavailable in the library, a reserve has been made for it.
@@ -27,11 +27,11 @@ description = """
 *  At that point, reserved students may also borrow the book.
 *  We may view all of the library's data. Every aspect of borrowing, reserving, and returning
 
-## Book
+### Book
 
 * cread operation of book
 
-## Class Room 
+### Class Room 
 
 * Adding classroom
 
@@ -41,6 +41,8 @@ app = FastAPI(openapi_tags=tags_metadata, description=description)
 
 
 SQLModel.metadata.create_all(engine)
+
+
 
 app.include_router(book.router)
 app.include_router(class_room.router)
