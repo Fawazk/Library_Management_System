@@ -29,7 +29,7 @@ async def register_book(
         * Subject must be any one from this ['english', 'maths', 'science', 'social']
     """
     try:
-        response = functions.register_book(db, book_data,backgroud_task)
+        response = functions.register_book(db, book_data, backgroud_task)
     except exc.IntegrityError as e:
         exception.IntegrityError(detail=str(e.orig))
     return response

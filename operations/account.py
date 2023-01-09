@@ -10,17 +10,21 @@ from models.pydantic_models.response.account import (
 )
 from models.pydantic_models.request.account import StudentLoginTokenDataRequest
 from passlib.context import CryptContext
-from configaration import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from config.database import get_db
 from sqlmodel import Session
 from fastapi.security import OAuth2PasswordBearer
 from typing import Dict
+from models.pydantic_models.settings import settings
+
+token_settings = settings()
+ACCESS_TOKEN_EXPIRE_MINUTES = token_settings.ACCESS_TOKEN_EXPIRE_MINUTES
+ALGORITHM = token_settings.ALGORITHM
+SECRET_KEY = token_settings.SECRET_KEY
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-# oauth2_scheme = OAuth2PasswordBearer(tokenUrl="http://127.0.0.1:8000/login")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="http://127.0.0.1:8000/account/login")
 
 
@@ -112,7 +116,6 @@ def login_school(db, form_data):
     user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
         exception.HTTP_401_UNAUTHORIZED("Incorrect user or password")
-
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.email}, expires_delta=access_token_expires

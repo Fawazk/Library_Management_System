@@ -3,7 +3,6 @@ from routers import account, book, class_room, library
 from sqlmodel import SQLModel
 from config.database import engine
 
-
 tags_metadata = [
     {"name": "Account"},
     {"name": "library"},
@@ -39,37 +38,31 @@ description = """
 from fastapi import FastAPI, Query
 
 
-
 app = FastAPI(openapi_tags=tags_metadata, description=description)
 
 
+# @app.get("/items/")
+# async def read_items(
+#     q: str
+#     | None = Query(
+#         default=None,
+#         example="example@gmail.com",
+#         alias="item-query",
+#         title="Query string",
+#         description="Query string for the items to search in the database that have a good match",
+#         min_length=3,
+#         max_length=50,
+#         regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',
+#         deprecated=False,
+#     )
+# ):
 
-import os
-
-
-
-@app.get("/items/")
-async def read_items(
-    q: str
-    | None = Query(
-        default=None,
-        example="example@gmail.com",
-        alias="item-query",
-        title="Query string",
-        description="Query string for the items to search in the database that have a good match",
-        min_length=3,
-        max_length=50,
-        regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',
-        deprecated=False,
-    )
-):
-
-    name = os.environ["MY_NAME"]
-    print(f"Hello {name} from Python")
-    results = {"items": [{"item_id": "Foo"}, {"item_id": "Bar"}]}
-    if q:
-        results.update({"q": q})
-    return results
+#     name = os.environ["MY_NAME"]
+#     print(f"Hello {name} from Python")
+#     results = {"items": [{"item_id": "Foo"}, {"item_id": "Bar"}]}
+#     if q:
+#         results.update({"q": q})
+#     return results
 
 SQLModel.metadata.create_all(engine)
 

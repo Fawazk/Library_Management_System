@@ -79,8 +79,7 @@ def edit_book(db, book_data, book_id, background_task: BackgroundTasks):
 def delete_book(db, book_id):
     book_db = db.get(Book, book_id)
     if book_db:
-        list_library_book = db.query(Library).filter(
-            Library.book == book_id).all()
+        list_library_book = db.query(Library).filter(Library.book == book_id).all()
         if list_library_book != []:
             for data in list_library_book:
                 db.delete(data)
