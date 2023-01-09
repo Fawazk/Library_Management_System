@@ -12,8 +12,11 @@ class StudentLoginDataRequest(StudentLoginTokenDataRequest):
     password: str
 
 
-class StudentRequest(StudentLoginDataRequest):
+class StaffRequest(StudentLoginDataRequest):
     name: str
+
+
+class StudentRequest(StaffRequest):
     class_room: int
 
 

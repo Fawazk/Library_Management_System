@@ -5,7 +5,7 @@ from datetime import datetime
 
 class Library(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    student: Optional[int] = Field(foreign_key="students.id")
+    student: Optional[int] = Field(foreign_key="account.id")
     book: Optional[int] = Field(foreign_key="book.id")
     is_reserved: bool = Field(default=False)
     is_return: bool = Field(default=False)

@@ -1,11 +1,15 @@
 from fastapi import FastAPI, Depends, APIRouter, status
 from models.pydantic_models.request.class_room import ClassRoomRequest
-from models.pydantic_models.response.class_room import ClassRoomResponse
-from models.pydantic_models.response.student import ListStudentResponse
+from models.pydantic_models.response.class_room import (
+    ClassRoomResponse,
+    ClassRoomPathParameters,
+)
+from models.pydantic_models.response.account import ListStudentResponse
 from config.database import get_db
 from sqlmodel import Session
 from operations import class_room as functions
-from operations import student as studentfunctions
+from operations import account as studentfunctions
+from models.pydantic_models.response.account import FinalStaffResponse
 from sqlalchemy import exc
 import exception
 
@@ -13,9 +17,15 @@ import exception
 router = APIRouter(tags=["class Room"], prefix="/class-room")
 
 
-@router.post("/register", response_model=ClassRoomResponse,status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/register", response_model=ClassRoomResponse, status_code=status.HTTP_201_CREATED
+)
 async def register_class_room(
-    class_room_data: ClassRoomRequest, db: Session = Depends(get_db)
+    class_room_data: ClassRoomRequest,
+    db: Session = Depends(get_db),
+    current_user: FinalStaffResponse = Depends(
+        studentfunctions.get_current_active_staff_user
+    ),
 ):
     """To add the class room"""
     try:
@@ -25,10 +35,21 @@ async def register_class_room(
     return response
 
 
-@router.get("/students", response_model=list[ListStudentResponse],status_code=status.HTTP_203_NON_AUTHORITATIVE_INFORMATION)
-async def get_student(class_room_id: int, db: Session = Depends(get_db)):
+@router.get(
+    "/students/{ClassRoomId}",
+    response_model=list[ListStudentResponse],
+    status_code=status.HTTP_203_NON_AUTHORITATIVE_INFORMATION,
+)
+async def get_student(
+    path_parameters: ClassRoomPathParameters = Depends(ClassRoomPathParameters),
+    db: Session = Depends(get_db),
+    current_user: FinalStaffResponse = Depends(
+        studentfunctions.get_current_active_staff_user
+    ),
+):
     """To get all students in one class room"""
-    response = studentfunctions.get_student(db=db, class_room_id=class_room_id)
+    path_parameters = path_parameters.__dict__
+    response = studentfunctions.get_account(db=db, params=path_parameters)
     return response
 
 

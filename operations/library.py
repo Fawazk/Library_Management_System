@@ -2,11 +2,11 @@ from fastapi import BackgroundTasks, Depends
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from models.sql_models.library import Library
 from models.sql_models.book import Book
-from models.sql_models.students import Students
+from models.sql_models.account import Account
 import exception
 from datetime import datetime
 from models.pydantic_models.request.library import LibraryRequest, conf
-from operations import student as studentfunctions
+from operations import account as studentfunctions
 from models.pydantic_models.response.library import EmailSchema
 from starlette.requests import Request
 from starlette.responses import JSONResponse
@@ -41,7 +41,7 @@ def borrow_book(
     """This is the function for borrowing book"""
     student_db = current_student
     book_db = db.get(Book, borrow_book_data.book)
-    all_library_data = get_library_data(db=db,students=student_db.id)
+    all_library_data = get_library_data(db=db, students=student_db.id)
     if all_library_data:
         for data in all_library_data:
             if data.return_date:
@@ -91,13 +91,13 @@ def return_borrow_book(
         db.add(Library_db)
         db.commit()
         db.refresh(book_db)
-        template = f"I appreciate you giving the borrowed book back."
+        template = f"I Thank you for giving the borrowed book back!"
         sendemail = EmailSchema(email=[student_db.email])
         send_email(sendemail, template, background_task)
         reserved_library = get_library_data(db=db, is_reserved=True, book=book_db.id)
         if reserved_library:
             for data in reserved_library:
-                reserved_student_db = db.get(Students, data.student)
+                reserved_student_db = db.get(Account, data.student)
                 template_msg = f"The {book_db.name} book you requested is now available. There are {book_db.quantity} quantities available right now, so hurry up and grab one before they are all gone."
                 email = EmailSchema(email=[reserved_student_db.email])
                 send_email(email, template_msg, background_task)
@@ -163,13 +163,11 @@ def get_library_data(**kwargs):
                 return None
             list_of_library.sort(key=lambda data: data.date_of_borrow)
             return list_of_library
-        
+
         if "students" in kwargs:
-            student_id  = kwargs["students"]
+            student_id = kwargs["students"]
             list_of_library = (
-                db.query(Library)
-                .filter(Library.student == student_id)
-                .all()
+                db.query(Library).filter(Library.student == student_id).all()
             )
             if list_of_library == []:
                 return None

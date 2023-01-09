@@ -1,5 +1,5 @@
 from models.pydantic_models.request.book import BookRequest
-from fastapi import Path,Form
+from fastapi import Path, Form
 
 #  Address Schema
 class BookResponse(BookRequest):
@@ -16,7 +16,7 @@ class BookPathParameters:
             alias="BookId",
             title="The ID of the book to get",
             description="The ID of the book to get",
-            ge=1
+            ge=1,
         )
         # library_id : int = Path()
     ):

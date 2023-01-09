@@ -1,6 +1,6 @@
 from models.pydantic_models.request.class_room import ClassRoomRequest
 from models.sql_models.class_room import ClassRoom
-from models.sql_models.students import Students
+from models.sql_models.account import Account
 import exception
 
 
@@ -20,7 +20,7 @@ def get_class_room(**kwargs):
         if "class_room_id" in kwargs:
             class_room_id = kwargs["class_room_id"]
             list_of_class_rooms = (
-                db.query(Students).filter(Students.class_room == class_room_id).all()
+                db.query(Account).filter(Account.class_room == class_room_id).all()
             )
             if list_of_class_rooms:
                 return list_of_class_rooms

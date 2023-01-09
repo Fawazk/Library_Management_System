@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, APIRouter, Path, BackgroundTasks,status
+from fastapi import FastAPI, Depends, APIRouter, Path, BackgroundTasks, status
 from operations import library as functions
 from models.pydantic_models.request.library import LibraryRequest
 from models.pydantic_models.response.library import (
@@ -8,14 +8,19 @@ from models.pydantic_models.response.library import (
 )
 from config.database import get_db
 from sqlmodel import Session
-from models.pydantic_models.response.student import FinalStudentResponse
-from operations import student as studentfunctions
+from models.pydantic_models.response.account import (
+    FinalStudentResponse,
+    FinalStaffResponse,
+)
+from operations import account as studentfunctions
 
 
 router = APIRouter(tags=["library"], prefix="/library")
 
 
-@router.post("/borrow", response_model=LibraryResponse,status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/borrow", response_model=LibraryResponse, status_code=status.HTTP_201_CREATED
+)
 async def borrow_book(
     borrow_book_data: LibraryRequest,
     backgroud_task: BackgroundTasks,
@@ -29,7 +34,7 @@ async def borrow_book(
     return response
 
 
-@router.patch("/return-borrow/{BorrowId}",status_code=status.HTTP_202_ACCEPTED)
+@router.patch("/return-borrow/{BorrowId}", status_code=status.HTTP_202_ACCEPTED)
 async def return_borrow_book(
     backgroud_task: BackgroundTasks,
     path_parameters: LibraryPathParameters = Depends(LibraryPathParameters),
@@ -45,7 +50,11 @@ async def return_borrow_book(
     return response
 
 
-@router.patch("/borrow-reserved/{reserved_id}", response_model=LibraryResponse,status_code=status.HTTP_201_CREATED)
+@router.patch(
+    "/borrow-reserved/{reserved_id}",
+    response_model=LibraryResponse,
+    status_code=status.HTTP_201_CREATED,
+)
 async def borrow_reserved_book(
     backgroud_task: BackgroundTasks,
     reserved_id: int = Path(
@@ -65,9 +74,18 @@ async def borrow_reserved_book(
     return response
 
 
-@router.get("/all-datas", response_model=list[LibraryResponse],status_code=status.HTTP_202_ACCEPTED)
+@router.get(
+    "/all-data",
+    response_model=list[LibraryResponse],
+    status_code=status.HTTP_202_ACCEPTED,
+)
 async def get_library_data(
-    skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    current_user: FinalStaffResponse = Depends(
+        studentfunctions.get_current_active_staff_user
+    ),
 ):
     """To get all the datas inside library"""
     response = functions.get_library_data(db=db, skip=skip, limit=limit)

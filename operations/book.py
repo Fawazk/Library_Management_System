@@ -5,21 +5,29 @@ import exception
 from models.sql_models.library import Library
 from operations import library as libraryfunctions
 from operations.library import send_email
-from models.sql_models.students import Students
+from models.sql_models.account import Account
 from models.pydantic_models.response.library import EmailSchema
+from operations.account import get_account
 
 
-def register_book(db, book_data: BookRequest):
+def register_book(db, book_data: BookRequest, background_task: BackgroundTasks):
     """This is the function for adding the book"""
     book_data_db = Book(**book_data.dict())
     db.add(book_data_db)
     db.commit()
     db.refresh(book_data_db)
+    user_list = get_account(db=db)
+    for data in user_list:
+        email = EmailSchema(email=[data.email])
+        template = f"""Hai {data.name} , A new book is added to our library <br>
+                    name : {book_data_db.name} <br>
+                    subject : {book_data_db.subject}
+                    """
+        send_email(email, template, background_task)
     return book_data_db
 
 
 def get_book(**kwargs):
-
     if "db" in kwargs:
         db = kwargs["db"]
         if "book_id" in kwargs:
@@ -54,7 +62,7 @@ def edit_book(db, book_data, book_id, background_task: BackgroundTasks):
             )
             if reserved_library:
                 for data in reserved_library:
-                    reserved_student_db = db.get(Students, data.student)
+                    reserved_student_db = db.get(Account, data.student)
                     template_msg = f"The {address.name} book you requested is now available. There are {address.quantity} quantities available right now, so hurry up and grab one before they are all gone."
                     email = EmailSchema(email=[reserved_student_db.email])
                     send_email(email, template_msg, background_task)
@@ -71,7 +79,8 @@ def edit_book(db, book_data, book_id, background_task: BackgroundTasks):
 def delete_book(db, book_id):
     book_db = db.get(Book, book_id)
     if book_db:
-        list_library_book = db.query(Library).filter(Library.book == book_id).all()
+        list_library_book = db.query(Library).filter(
+            Library.book == book_id).all()
         if list_library_book != []:
             for data in list_library_book:
                 db.delete(data)

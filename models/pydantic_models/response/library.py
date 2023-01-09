@@ -29,6 +29,6 @@ class LibraryPathParameters:
             title="The ID of the borrow to get",
             description="The ID of the borrow to get",
             ge=1,
-        )
+        ),
     ):
         self.borrow_id = borrow_id

@@ -1,26 +1,32 @@
 from fastapi import FastAPI, Depends, APIRouter, status
-from models.pydantic_models.request.student import (
+from models.pydantic_models.request.account import (
     StudentRequest,
+    StaffRequest,
     Token,
-    StudentLoginDataRequest,
 )
-from models.pydantic_models.response.student import (
-    FinalStudentResponse,
+from models.pydantic_models.response.account import (
     ListStudentResponse,
+    ListStaffResponse,
+    AccountQueryParameters,
+    FinalStaffResponse,
 )
 from config.database import get_db
 from sqlmodel import Session
-from operations import student as functions
+from operations import account as functions
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import exc
 import exception
 
 
-router = APIRouter(tags=["students"], prefix="/student")
+router = APIRouter(tags=["Account"], prefix="/account")
 
 
 # @router.post("/register-student", response_model=FinalStudentResponse)
-@router.post("/register", response_model=ListStudentResponse,status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/register-student",
+    response_model=ListStudentResponse,
+    status_code=status.HTTP_201_CREATED,
+)
 async def register_student(student_data: StudentRequest, db: Session = Depends(get_db)):
     """To register the student"""
     try:
@@ -30,9 +36,24 @@ async def register_student(student_data: StudentRequest, db: Session = Depends(g
     return response
 
 
-@router.post("/login", response_model=Token,status_code=status.HTTP_200_OK)
+@router.post(
+    "/register-staff",
+    response_model=ListStaffResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def register_staff(staff_data: StaffRequest, db: Session = Depends(get_db)):
+    """To register the student"""
+    try:
+        response = functions.register_staff(db, staff_data)
+    except exc.IntegrityError as e:
+        exception.IntegrityError(detail=str(e.orig))
+    return response
+
+
+@router.post("/login", response_model=Token, status_code=status.HTTP_200_OK)
 async def login(
-    form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db),
 ):
     """
     To login into the school
@@ -42,15 +63,18 @@ async def login(
     return response
 
 
-# @router.get("/list-students", response_model=list[ListStudentResponse])
-# async def get_students(
-#     skip: int = 0,
-#     limit: int = 100,
-#     db: Session = Depends(get_db),
-# ):
-#     """To get one class room by the id given"""
-#     response = functions.get_student(db=db, skip=skip, limit=limit)
-#     return response
+@router.get("/accounts")
+async def get_account(
+    query_parameters: AccountQueryParameters = Depends(AccountQueryParameters),
+    db: Session = Depends(get_db),
+    current_user: FinalStaffResponse = Depends(functions.get_current_active_staff_user),
+    # skip: int = 0,
+    # limit: int = 100,
+):
+    """You can give what ever you want"""
+    query_parameters = query_parameters.__dict__
+    response = functions.get_account(db=db, params=query_parameters)
+    return response
 
 
 # @router.get("/get-student", response_model=StudentResponse)

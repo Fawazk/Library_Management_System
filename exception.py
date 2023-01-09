@@ -48,5 +48,5 @@ def Exception_students_null():
 def UserAlreadyInLibrary(student):
     raise HTTPException(
         status_code=409,
-        detail=f"{student} You've already borrowed or reserved one book; the rest can be taken after you return that"
+        detail=f"{student} You've already borrowed or reserved one book; the rest can be taken after you return that",
     )
