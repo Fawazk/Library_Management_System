@@ -14,7 +14,9 @@ from sqlalchemy import exc
 import exception
 
 
-router = APIRouter(tags=["class Room"], prefix="/class-room")
+router = APIRouter(tags=["class Room"], prefix="/class-room",dependencies=[Depends(
+        studentfunctions.get_current_active_staff_user
+    )])
 
 
 @router.post(
@@ -22,10 +24,7 @@ router = APIRouter(tags=["class Room"], prefix="/class-room")
 )
 async def register_class_room(
     class_room_data: ClassRoomRequest,
-    db: Session = Depends(get_db),
-    current_user: FinalStaffResponse = Depends(
-        studentfunctions.get_current_active_staff_user
-    ),
+    db: Session = Depends(get_db)
 ):
     """To add the class room"""
     try:
@@ -42,10 +41,7 @@ async def register_class_room(
 )
 async def get_student(
     path_parameters: ClassRoomPathParameters = Depends(ClassRoomPathParameters),
-    db: Session = Depends(get_db),
-    current_user: FinalStaffResponse = Depends(
-        studentfunctions.get_current_active_staff_user
-    ),
+    db: Session = Depends(get_db)
 ):
     """To get all students in one class room"""
     path_parameters = path_parameters.__dict__

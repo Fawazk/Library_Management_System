@@ -67,7 +67,8 @@ async def login(
 async def get_account(
     query_parameters: AccountQueryParameters = Depends(AccountQueryParameters),
     db: Session = Depends(get_db),
-    current_user: FinalStaffResponse = Depends(functions.get_current_active_staff_user),
+    current_user: FinalStaffResponse = Depends(
+        functions.get_current_active_staff_user),
     # skip: int = 0,
     # limit: int = 100,
 ):

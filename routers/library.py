@@ -21,6 +21,7 @@ router = APIRouter(tags=["library"], prefix="/library")
 @router.post(
     "/borrow", response_model=LibraryResponse, status_code=status.HTTP_201_CREATED
 )
+
 async def borrow_book(
     borrow_book_data: LibraryRequest,
     backgroud_task: BackgroundTasks,
@@ -51,7 +52,7 @@ async def return_borrow_book(
 
 
 @router.patch(
-    "/borrow-reserved/{reserved_id}",
+    "/borrow-reserved/{ReservedId}",
     response_model=LibraryResponse,
     status_code=status.HTTP_201_CREATED,
 )
